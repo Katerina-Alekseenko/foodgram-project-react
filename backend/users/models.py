@@ -51,7 +51,7 @@ class Subscription(models.Model):
     """ Модель подписок. """
     user = models.ForeignKey(
         User,
-        related_name='follower',
+        related_name='subscriptions',
         on_delete=models.CASCADE,
         verbose_name='Подписчик'
         )

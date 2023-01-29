@@ -207,17 +207,17 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 class FavoriteSerializer(serializers.ModelSerializer):
     """ Сериализатор модели Favorite. """
     id = serializers.ReadOnlyField(
-        source='favorite_recipe.id',
+        source='recipe.id',
     )
     name = serializers.ReadOnlyField(
-        source='favorite_recipe.name',
+        source='recipe.name',
     )
     image = serializers.CharField(
-        source='favorite_recipe.image',
+        source='recipe.image',
         read_only=True,
     )
     cooking_time = serializers.ReadOnlyField(
-        source='favorite_recipe.cooking_time',
+        source='recipe.cooking_time',
     )
 
     class Meta:
@@ -229,7 +229,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         recipe = self.context.get('recipe_id')
         if Favorite.objects.filter(
             user=user,
-            favorite_recipe=recipe
+            recipe=recipe
         ).exists():
             raise serializers.ValidationError({
                 'errors': 'Рецепт уже в избранном'})

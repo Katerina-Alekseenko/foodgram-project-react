@@ -1,3 +1,34 @@
+import logging
+
+
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from djoser.views import UserViewSet
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ListCart, Tag)
+from users.models import Subscription, User
+from rest_framework import status, viewsets
+from rest_framework.decorators import api_view
+from rest_framework.decorators import action
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+
+from api.filters import RecipeFilter
+from api.paginations import CustomPagination
+from api.mixins import CreateDestroyViewSet
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          RecipeSerializer, CreateRecipeSerializer,
+                          ListCartSerializer,
+                          SubscriptionsSerializer, TagSerializer,
+                          UsersSerializer)
+
+
+logger = logging.getLogger(__name__)
+
+
+'''
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from recipes.models import (Favorite, Ingredient, Recipe,
@@ -9,7 +40,7 @@ from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
-from api.filters import IngredientFilter, RecipeFilter
+from api.filters import RecipeFilter
 from api.paginations import CustomPagination
 from api.mixins import CreateDestroyViewSet
 from .serializers import (FavoriteSerializer, IngredientSerializer,
@@ -17,6 +48,7 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           ListCartSerializer,
                           SubscriptionsSerializer, TagSerializer,
                           UsersSerializer)
+'''
 
 
 class UsersViewSet(UserViewSet):
@@ -81,9 +113,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
+        logger.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! something error')
         if self.request.method == 'GET':
-            return RecipeSerializer
-        return CreateRecipeSerializer
+            return CreateRecipeSerializer
+        return RecipeSerializer
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -98,7 +131,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
-    filterset_class = IngredientFilter
+    #filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -116,7 +149,7 @@ class SubscribeViewSet(CreateDestroyViewSet):
     serializer_class = SubscriptionsSerializer
 
     def get_queryset(self):
-        return self.request.user.follower.all()
+        return self.request.user.subscriptions.all()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -164,7 +197,7 @@ class FavoriteRecipeViewSet(CreateDestroyViewSet):
     def perform_create(self, serializer):
         serializer.save(
             user=self.request.user,
-            favorite_recipe=get_object_or_404(
+            recipe=get_object_or_404(
                 Recipe,
                 id=self.kwargs.get('recipe_id')
             )
@@ -173,15 +206,15 @@ class FavoriteRecipeViewSet(CreateDestroyViewSet):
     @action(methods=('delete',), detail=True)
     def delete(self, request, recipe_id):
         recipe = request.user
-        if not recipe.favorite.select_related(
-                'favorite_recipe').filter(
-                    favorite_recipe_id=recipe_id).exists():
+        if not recipe.favorites.select_related(
+                'recipe').filter(
+                    recipe_id=recipe_id).exists():
             return Response({'errors': 'Рецепт не в избранном'},
                             status=status.HTTP_400_BAD_REQUEST)
         get_object_or_404(
             Favorite,
             user=request.user,
-            favorite_recipe_id=recipe_id).delete()
+            recipe_id=recipe_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -208,6 +241,30 @@ class ListCartViewSet(CreateDestroyViewSet):
             )
         )
 
+
+@api_view(['GET'])
+def download_shopping_cart(request):
+    ingredient_list = "Cписок покупок:"
+    ingredients = IngredientInRecipe.objects.filter(
+        recipe__shopping_cart__user=request.user
+    ).values(
+        'ingredient__name', 'ingredient__measurement_unit'
+    ).annotate(amount=Sum('amount'))
+    for num, i in enumerate(ingredients):
+        ingredient_list += (
+            f"\n{i['ingredient__name']} - "
+            f"{i['amount']} {i['ingredient__measurement_unit']}"
+        )
+        if num < ingredients.count() - 1:
+            ingredient_list += ', '
+    file = 'shopping_list'
+    response = HttpResponse(ingredient_list, 'Content-Type: application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{file}.pdf"'
+    return response
+
+
+
+'''
     @action(methods=('delete',), detail=True)
     def delete(self, request, recipe_id):
         recipe = request.user
@@ -221,3 +278,4 @@ class ListCartViewSet(CreateDestroyViewSet):
             user=request.user,
             recipe=recipe_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+'''

@@ -50,7 +50,7 @@ class Tag(models.Model):
         verbose_name_plural = 'Tags'
 
     def __str__(self) -> str:
-        return self.slug
+        return self.name
 
 
 class Recipe(models.Model):

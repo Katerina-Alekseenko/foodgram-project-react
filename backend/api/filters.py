@@ -1,18 +1,7 @@
 from django_filters import rest_framework as filter
 
 from rest_framework.filters import SearchFilter
-from recipes.models import Ingredient, Recipe
-
-
-class IngredientFilter(SearchFilter):
-    name = filter.CharFilter(
-        field_name='name',
-        lookup_expr='istartswith'
-    )
-
-    class Meta:
-        model = Ingredient
-        fields = ('name')
+from recipes.models import Recipe
 
 
 class RecipeFilter(filter.FilterSet):
@@ -38,11 +27,11 @@ class RecipeFilter(filter.FilterSet):
     def get_is_favorited(self, queryset, name, value):
         user = self.request.user
         if value:
-            return queryset.filter(recipe_favourite__user_id=user.id)
+            return queryset.filter(favorites__user_id=user.id)
         return queryset.all()
 
     def get_is_shopping_cart(self, queryset, name, value):
         user = self.request.user
         if value:
-            return queryset.filter(recipe_shopping_cart__user_id=user.id)
+            return queryset.filter(shopping_cart__user_id=user.id)
         return queryset.all()
