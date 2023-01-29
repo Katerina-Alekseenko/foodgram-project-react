@@ -9,6 +9,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='django-insecure-1')
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '*', #becasue we are running a public web server
     'localhost',
     'http://127.0.0.1:3000',
     '127.0.0.1',
@@ -65,8 +66,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-CORS_ORIGIN_ALLOW_ALL = True
+CSRF_COOKIE_SECURE = False # force Django not to check secure cookies because we are using http not httpS
+
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_URLS_REGEX = r'^/api/.*$'
+
+CSRF_TRUSTED_ORIGINS = ['http://ubuntusrv', 'http://backend:8000']
+
+CORS_ORIGIN_WHITELIST = [
+    'http://ubuntusrv',
+]
 
 DATABASES = {
     'default': {
