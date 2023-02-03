@@ -32,4 +32,6 @@ class FavoritetAdmin(admin.ModelAdmin):
 @admin.register(ListCart)
 class ListCartAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
+    search_fields = ('user', 'recipe')
+    list_filter = ('user', 'recipe')
     empty_value_display = '--empty--'

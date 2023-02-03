@@ -165,16 +165,19 @@ class ListCart(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='shopping_cart',
+        related_name='recipe_shopping_cart',
     )
 
     class Meta:
+        ordering = ('id',)
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='user_shoppingcart_unique'
-            )
-        ]
+                fields=('user', 'recipe'),
+                name='unique recipe in shopping cart')]
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
 
-    def __str__(self) -> str:
-        return f'{self.user} добавил в список покупок {self.recipe}'
+    def __str__(self):
+        return (f'Пользователь: {self.user.username},'
+                f'рецепт в списке: {self.recipe.name}')
+

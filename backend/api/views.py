@@ -1,8 +1,8 @@
 import logging
 
-
+from http import HTTPStatus
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from django.http import HttpResponse
 from djoser.views import UserViewSet
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
@@ -241,34 +241,10 @@ class ListCartViewSet(CreateDestroyViewSet):
             )
         )
 
-
-@api_view(['GET'])
-def download_shopping_cart(request):
-    ingredient_list = "Cписок покупок:"
-    ingredients = IngredientInRecipe.objects.filter(
-        recipe__shopping_cart__user=request.user
-    ).values(
-        'ingredient__name', 'ingredient__measurement_unit'
-    ).annotate(amount=Sum('amount'))
-    for num, i in enumerate(ingredients):
-        ingredient_list += (
-            f"\n{i['ingredient__name']} - "
-            f"{i['amount']} {i['ingredient__measurement_unit']}"
-        )
-        if num < ingredients.count() - 1:
-            ingredient_list += ', '
-    file = 'shopping_list'
-    response = HttpResponse(ingredient_list, 'Content-Type: application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{file}.pdf"'
-    return response
-
-
-
-'''
     @action(methods=('delete',), detail=True)
     def delete(self, request, recipe_id):
-        recipe = request.user
-        if not recipe.shopping_cart.select_related(
+        u = request.user
+        if not u.shopping_cart.select_related(
                 'recipe').filter(
                     recipe_id=recipe_id).exists():
             return Response({'errors': 'Рецепта нет в корзине'},
@@ -278,4 +254,4 @@ def download_shopping_cart(request):
             user=request.user,
             recipe=recipe_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-'''
+
