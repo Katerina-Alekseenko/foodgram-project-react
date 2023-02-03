@@ -18,7 +18,9 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'author')
-    search_fields = ('user', 'author')
-    list_filter = ('user', 'author')
+    list_display = (
+        'id', 'author', 'user',
+    )
+    search_fields = ('author',)
+    list_filter = ('author', 'user',)
     empty_value_display = '-empty-'

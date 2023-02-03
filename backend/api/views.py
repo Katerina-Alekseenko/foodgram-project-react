@@ -179,8 +179,18 @@ class SubscribeViewSet(CreateDestroyViewSet):
 
     serializer_class = SubscriptionsSerializer
 
-    def get_queryset(self):
-        return self.request.user.subscriptions.all()
+    permission_classes = [IsAuthenticated, ]
+    pagination_class = CustomPagination
+
+    def get_queryset(self, request):
+        user = request.user
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        queryset = User.objects.filter(author__user=user)
+        page = self.paginate_queryset(queryset)
+        serializer = SubscriptionsSerializer(
+            page, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

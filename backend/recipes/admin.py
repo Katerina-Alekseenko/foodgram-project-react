@@ -29,7 +29,7 @@ class RecipeAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.annotate(
-            obj_count=Count("favorite_recipe", distinct=True),
+            obj_count=Count("favorites", distinct=True),
         )
 
 @admin.register(Favorite)

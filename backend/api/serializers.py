@@ -267,47 +267,62 @@ class ListCartSerializer(serializers.ModelSerializer):
                 'errors': 'Рецепт уже добавлен в список покупок'})
         return data
 
+class SubscribeRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
     """ Сериализатор подписок пользователя. """
-    id = serializers.ReadOnlyField(source='author.id')
-    username = serializers.ReadOnlyField(source='author.username')
-    first_name = serializers.ReadOnlyField(source='author.first_name')
-    last_name = serializers.ReadOnlyField(source='author.last_name')
-    email = serializers.ReadOnlyField(source='author.email')
-    is_subscribed = serializers.SerializerMethodField()
+    email = serializers.CharField(
+        source='author.email',
+        read_only=True)
+    id = serializers.IntegerField(
+        source='author.id',
+        read_only=True)
+    username = serializers.CharField(
+        source='author.username',
+        read_only=True)
+    first_name = serializers.CharField(
+        source='author.first_name',
+        read_only=True)
+    last_name = serializers.CharField(
+        source='author.last_name',
+        read_only=True)
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+    recipes_count = serializers.ReadOnlyField(
+        source='author.recipe.count')
 
     class Meta:
         model = Subscription
-        fields = (
-            'id',
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes', 'recipes_count',)
 
-    def get_is_subscribed(self, obj):
-        return Subscription.objects.filter(
-            user=obj.user,
-            author=obj.author
-        ).exists()
+    def validate(self, data):
+        user = self.context.get('request').user
+        author = self.context.get('author_id')
+        if user.id == int(author):
+            raise serializers.ValidationError({
+                'errors': 'Нельзя подписаться на самого себя'})
+        if Subscription.objects.filter(user=user, author=author).exists():
+            raise serializers.ValidationError({
+                'errors': 'Вы уже подписаны на данного пользователя'})
+        return data
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        recipes = Recipe.objects.filter(author=obj)
-        limit = request.query_params.get('recipes_limit')
-        if limit:
-            recipes = recipes[:int(limit)]
-        return FavoriteSerializer(
-            recipes, many=True, context={'request': request}).data
+        recipes = obj.author.recipe.all()
+        return SubscribeRecipeSerializer(
+            recipes,
+            many=True).data
 
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj.author).count()
+    def get_is_subscribed(self, obj):
+        subscribe = Subscription.objects.filter(
+            user=self.context.get('request').user,
+            author=obj.author
+        )
+        if subscribe:
+            return True
+        return False
+

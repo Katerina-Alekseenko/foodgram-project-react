@@ -51,24 +51,27 @@ class Subscription(models.Model):
     """ Модель подписок. """
     user = models.ForeignKey(
         User,
-        related_name='subscriptions',
+        related_name='follower',
         on_delete=models.CASCADE,
         verbose_name='Подписчик'
         )
     author = models.ForeignKey(
         User,
-        related_name='author',
+        related_name='following',
         on_delete=models.CASCADE,
         verbose_name='Автор'
     )
 
+
     class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        ordering = ('-id',)
         constraints = [
-            UniqueConstraint(
-                fields=['user', 'author'],
-                name='user_author_unique'
-            )
-        ]
+            models.UniqueConstraint(
+                fields=('user', 'author'),
+                name='unique_subscription')]
 
     def __str__(self):
-        return f'Пользователь {self.user} подписался на {self.author}'
+        return (f'Пользователь: {self.user.username},'
+                f' автор: {self.author.username}')
