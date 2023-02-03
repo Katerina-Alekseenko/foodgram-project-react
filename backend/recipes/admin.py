@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 from recipes.models import (Favorite, Ingredient, ListCart,
                             Recipe, Tag)
 
@@ -12,6 +13,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'color', 'slug')
+    list_filter = ('name', 'slug')
     search_fields = ('name', 'slug')
     empty_value_display = '--empty--'
 
@@ -21,8 +23,14 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     empty_value_display = '--empty--'
 
-    def favorite_count(self, instance):
-        return Favorite.objects.filter(recipe=instance).count()
+    def favorite_count(self, obj):
+        return obj.obj_count
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.annotate(
+            obj_count=Count("favorite_recipe", distinct=True),
+        )
 
 @admin.register(Favorite)
 class FavoritetAdmin(admin.ModelAdmin):

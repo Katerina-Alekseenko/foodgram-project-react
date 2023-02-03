@@ -15,7 +15,7 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
-from api.filters import RecipeFilter
+from api.filters import RecipesFilter
 from api.paginations import CustomPagination
 from api.mixins import CreateDestroyViewSet
 from .serializers import (FavoriteSerializer, IngredientSerializer,
@@ -110,7 +110,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = CustomPagination
     queryset = Recipe.objects.all()
-    filterset_class = RecipeFilter
+    filterset_class = RecipesFilter
 
     def get_serializer_class(self):
         logger.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! something error')
@@ -123,6 +123,37 @@ class RecipeViewSet(viewsets.ModelViewSet):
         context.update({'request': self.request})
         return context
 
+
+'''
+    @action(
+        detail=False,
+        methods=('get',),
+        url_path='download_shopping_cart',
+        pagination_class=None)
+    def download_file(self, request):
+        user = request.user
+        if not user.shopping_cart.exists():
+            return Response(
+                'В корзине нет товаров', status=status.HTTP_400_BAD_REQUEST)
+
+        text = 'Список покупок:\n\n'
+        ingredient_name = 'recipe__recipe__ingredient__name'
+        ingredient_unit = 'recipe__recipe__ingredient__measurement_unit'
+        recipe_amount = 'recipe__recipe__amount'
+        amount_sum = 'recipe__recipet__amount__sum'
+        cart = user.shopping_cart.select_related('recipe').values(
+            ingredient_name, ingredient_unit).annotate(Sum(
+                recipe_amount)).order_by(ingredient_name)
+        for _ in cart:
+            text += (
+                f'{_[ingredient_name]} ({_[ingredient_unit]})'
+                f' — {_[amount_sum]}\n'
+            )
+        response = HttpResponse(text, content_type='text/plain')
+        filename = 'shopping_list.txt'
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return
+'''
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """ Вьюсет для ингредиентов. """
