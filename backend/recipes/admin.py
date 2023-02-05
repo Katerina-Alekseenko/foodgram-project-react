@@ -19,12 +19,12 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'favorites')
+    list_display = ('id', 'name', 'author', 'favorite_count')
     search_fields = ('name',)
     empty_value_display = '--empty--'
 
     def favorite_count(self, obj):
-        return obj.obj_count
+        return obj.favorites.count()
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

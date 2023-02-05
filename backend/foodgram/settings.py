@@ -79,14 +79,14 @@ CORS_ORIGIN_WHITELIST = [
 
 DATABASES = {
     'default': {
-        #'ENGINE': 'django.db.backends.sqlite3', 
-        #'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'ENGINE': os.getenv('DB_ENGINE'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        #'ENGINE': os.getenv('DB_ENGINE'),
+        #'NAME': os.getenv('DB_NAME'),
+        #'USER': os.getenv('POSTGRES_USER'),
+        #'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        #'HOST': os.getenv('DB_HOST'),
+        #'PORT': os.getenv('DB_PORT')
     }
 }
 
@@ -112,7 +112,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        #'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
@@ -169,6 +170,3 @@ LOGGING = {
         }
     },
 }
-
-
-

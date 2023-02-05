@@ -181,4 +181,3 @@ class ListCart(models.Model):
     def __str__(self):
         return (f'Пользователь: {self.user.username},'
                 f'рецепт в списке: {self.recipe.name}')
-

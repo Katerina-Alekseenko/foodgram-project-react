@@ -1,5 +1,9 @@
 import logging
 
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+
 from http import HTTPStatus
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, get_list_or_404
@@ -19,7 +23,7 @@ from api.filters import RecipesFilter
 from api.paginations import CustomPagination
 from api.mixins import CreateDestroyViewSet
 from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, CreateRecipeSerializer,
+                          RecipeSerializer, #CreateRecipeSerializer,
                           ListCartSerializer,
                           SubscriptionsSerializer, TagSerializer,
                           UsersSerializer)
@@ -96,7 +100,7 @@ class UsersViewSet(UserViewSet):
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         user = request.user
-        follows = User.objects.filter(following__user=user)
+        follows = Subscription.objects.filter(user=user)
         page = self.paginate_queryset(follows)
         serializer = SubscriptionsSerializer(
             page, many=True,
@@ -106,22 +110,58 @@ class UsersViewSet(UserViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """ Вьюсет для рецептов. """
-
+    serializer_class = RecipeSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = CustomPagination
     queryset = Recipe.objects.all()
     filterset_class = RecipesFilter
 
-    def get_serializer_class(self):
-        logger.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! something error')
-        if self.request.method == 'GET':
-            return CreateRecipeSerializer
-        return RecipeSerializer
+#    def get_serializer_class(self):
+#        logger.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! something error')
+#        if self.request.method == 'GET':
+#            return CreateRecipeSerializer
+#        return RecipeSerializer
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({'request': self.request})
-        return context
+#    def get_serializer_context(self):
+#        context = super().get_serializer_context()
+#        context.update({'request': self.request})
+#        return context
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated])
+    def download_shopping_cart(self, request):
+        final_list = {}
+        ingredients = IngredientInRecipe.objects.filter(
+            recipe__recipe_shopping_cart__user=request.user).values_list(
+            'ingredient__name', 'ingredient__measurement_unit',
+            'amount')
+        for item in ingredients:
+            name = item[0]
+            if name not in final_list:
+                final_list[name] = {
+                    'measurement_unit': item[1],
+                    'amount': item[2]
+                }
+            else:
+                final_list[name]['amount'] += item[2]
+        pdfmetrics.registerFont(
+            TTFont('DejaVuSans', 'DejaVuSans.ttf', 'UTF-8'))# Зменить на Windows шрифт Arial например
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = ('attachment; '
+                                           'filename="shopping_list.pdf"')
+        page = canvas.Canvas(response)
+        page.setFont('DejaVuSans', size=24)#Arial
+        page.drawString(200, 800, 'Список ингредиентов')
+        page.setFont('DejaVuSans', size=16)#Arial
+        height = 750
+        for i, (name, data) in enumerate(final_list.items(), 1):
+            page.drawString(75, height, (f'<{i}> {name} - {data["amount"]}, '
+                                         f'{data["measurement_unit"]}'))
+            height -= 25
+        page.showPage()
+        page.save()
+        return response
+
 
 
 '''
@@ -153,7 +193,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         filename = 'shopping_list.txt'
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return
+
 '''
+
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """ Вьюсет для ингредиентов. """
@@ -169,7 +212,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """ Вьюсет для тегов. """
 
     queryset = Tag.objects.all()
-    serializer_class = TagSerializer
+    #serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
 
@@ -181,6 +224,7 @@ class SubscribeViewSet(CreateDestroyViewSet):
 
     permission_classes = [IsAuthenticated, ]
     pagination_class = CustomPagination
+    http_method_names = ['get', 'post', 'delete', 'head']
 
     def get_queryset(self, request):
         user = request.user
@@ -295,4 +339,3 @@ class ListCartViewSet(CreateDestroyViewSet):
             user=request.user,
             recipe=recipe_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
