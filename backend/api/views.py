@@ -32,29 +32,6 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
 logger = logging.getLogger(__name__)
 
 
-'''
-from django.shortcuts import get_object_or_404
-from djoser.views import UserViewSet
-from recipes.models import (Favorite, Ingredient, Recipe,
-                            ListCart, Tag)
-from users.models import Subscription, User
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-from rest_framework.response import Response
-
-from api.filters import RecipeFilter
-from api.paginations import CustomPagination
-from api.mixins import CreateDestroyViewSet
-from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, CreateRecipeSerializer,
-                          ListCartSerializer,
-                          SubscriptionsSerializer, TagSerializer,
-                          UsersSerializer)
-'''
-
-
 class UsersViewSet(UserViewSet):
     """ Вьюсет для работы с пользователями """
     queryset = User.objects.all()
@@ -122,10 +99,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 #            return CreateRecipeSerializer
 #        return RecipeSerializer
 
-#    def get_serializer_context(self):
-#        context = super().get_serializer_context()
-#        context.update({'request': self.request})
-#        return context
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'request': self.request})
+        return context
 
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
@@ -162,42 +139,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         page.save()
         return response
 
-
-
-'''
-    @action(
-        detail=False,
-        methods=('get',),
-        url_path='download_shopping_cart',
-        pagination_class=None)
-    def download_file(self, request):
-        user = request.user
-        if not user.shopping_cart.exists():
-            return Response(
-                'В корзине нет товаров', status=status.HTTP_400_BAD_REQUEST)
-
-        text = 'Список покупок:\n\n'
-        ingredient_name = 'recipe__recipe__ingredient__name'
-        ingredient_unit = 'recipe__recipe__ingredient__measurement_unit'
-        recipe_amount = 'recipe__recipe__amount'
-        amount_sum = 'recipe__recipet__amount__sum'
-        cart = user.shopping_cart.select_related('recipe').values(
-            ingredient_name, ingredient_unit).annotate(Sum(
-                recipe_amount)).order_by(ingredient_name)
-        for _ in cart:
-            text += (
-                f'{_[ingredient_name]} ({_[ingredient_unit]})'
-                f' — {_[amount_sum]}\n'
-            )
-        response = HttpResponse(text, content_type='text/plain')
-        filename = 'shopping_list.txt'
-        response['Content-Disposition'] = f'attachment; filename={filename}'
-        return
-
-'''
-
-
-
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """ Вьюсет для ингредиентов. """
 
@@ -212,7 +153,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """ Вьюсет для тегов. """
 
     queryset = Tag.objects.all()
-    #serializer_class = TagSerializer
+    serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
 
@@ -228,7 +169,6 @@ class SubscribeViewSet(CreateDestroyViewSet):
 
     def get_queryset(self, request):
         user = request.user
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         queryset = User.objects.filter(author__user=user)
         page = self.paginate_queryset(queryset)
         serializer = SubscriptionsSerializer(
