@@ -152,11 +152,11 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'ingredients': 'Количество должно быть равным или больше 1'})
         for ingredient_item in ingredients:
             id_to_check = ingredient_item['id']
-            ingredient_to_chec = get_object_or_404(Ingredient, id=id_to_check)
+            ingredient_to_check = get_object_or_404(Ingredient, id=id_to_check)
             if not ingredient_to_check.exists():
                 raise serializers.ValidationError(
                     'Данного продукта нет в базе')
-            if ingredient_to_chec in ingredient_list:
+            if ingredient_to_check in ingredient_list:
                 raise serializers.ValidationError(
                     'Данные продукты повторяются в рецепте')
             ingredient_list.append(ingredient_to_chec)
