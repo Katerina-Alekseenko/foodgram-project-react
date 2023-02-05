@@ -159,7 +159,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             if ingredient_to_check in ingredient_list:
                 raise serializers.ValidationError(
                     'Данные продукты повторяются в рецепте')
-            ingredient_list.append(ingredient_to_chec)
+            ingredient_list.append(ingredient_to_check)
         return value
 
     def create_ingredients(self, ingredients, recipe):
