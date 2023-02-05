@@ -101,7 +101,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     """ Сериализатор просмотра модели Рецепт. """
     tags = TagSerializer(read_only=True, many=True)
     author = UsersSerializer(read_only=True)
-    #image = Base64ImageField()
+    image = Base64ImageField()
     #author = serializers.PrimaryKeyRelatedField(
     #many=False,
     #queryset=User.objects.all()
