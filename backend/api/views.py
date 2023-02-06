@@ -4,27 +4,25 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-from http import HTTPStatus
-from django.db.models import Sum
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from djoser.views import UserViewSet
-from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            ListCart, Tag)
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe,
+                            ListCart, Recipe, Tag)
 from users.models import Subscription, User
+
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view
 from rest_framework.decorators import action
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
+from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from api.filters import RecipesFilter
-from api.paginations import CustomPagination
 from api.mixins import CreateDestroyViewSet
+from api.paginations import CustomPagination
 from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, #CreateRecipeSerializer,
                           ListCartSerializer,
+                          RecipeSerializer,
                           SubscriptionsSerializer, TagSerializer,
                           UsersSerializer)
 
@@ -93,12 +91,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     filterset_class = RecipesFilter
 
-#    def get_serializer_class(self):
-#        logger.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! something error')
-#        if self.request.method == 'GET':
-#            return CreateRecipeSerializer
-#        return RecipeSerializer
-
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({'request': self.request})
@@ -122,14 +114,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             else:
                 final_list[name]['amount'] += item[2]
         pdfmetrics.registerFont(
-            TTFont('DejaVuSans', 'DejaVuSans.ttf', 'UTF-8'))# Зменить на Windows шрифт Arial например
+            TTFont('DejaVuSans', 'DejaVuSans.ttf', 'UTF-8'))
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = ('attachment; '
                                            'filename="shopping_list.pdf"')
         page = canvas.Canvas(response)
-        page.setFont('DejaVuSans', size=24)#Arial
+        page.setFont('DejaVuSans', size=24)
         page.drawString(200, 800, 'Список ингредиентов')
-        page.setFont('DejaVuSans', size=16)#Arial
+        page.setFont('DejaVuSans', size=16)
         height = 750
         for i, (name, data) in enumerate(final_list.items(), 1):
             page.drawString(75, height, (f'<{i}> {name} - {data["amount"]}, '
@@ -141,17 +133,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """ Вьюсет для ингредиентов. """
-
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
-    #filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """ Вьюсет для тегов. """
-
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -160,7 +149,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class SubscribeViewSet(CreateDestroyViewSet):
     """ Вьюсет для подписок. """
-
     serializer_class = SubscriptionsSerializer
 
     permission_classes = [IsAuthenticated, ]
@@ -207,7 +195,6 @@ class SubscribeViewSet(CreateDestroyViewSet):
 
 class FavoriteRecipeViewSet(CreateDestroyViewSet):
     """ Вьюсет для избранных рецептов. """
-
     serializer_class = FavoriteSerializer
 
     def get_queryset(self):
@@ -245,7 +232,6 @@ class FavoriteRecipeViewSet(CreateDestroyViewSet):
 
 class ListCartViewSet(CreateDestroyViewSet):
     """ Вьюсет для корзины. """
-
     serializer_class = ListCartSerializer
 
     def get_queryset(self):

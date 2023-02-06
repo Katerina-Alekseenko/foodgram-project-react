@@ -66,7 +66,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-CSRF_COOKIE_SECURE = False # force Django not to check secure cookies because we are using http not httpS
+# force Django not to check secure cookies because we are using http not httpS
+CSRF_COOKIE_SECURE = False
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_URLS_REGEX = r'^/api/.*$'

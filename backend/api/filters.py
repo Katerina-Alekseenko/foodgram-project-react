@@ -4,6 +4,7 @@ from recipes.models import Recipe, Tag
 
 User = get_user_model()
 
+
 class RecipesFilter(FilterSet):
     tags = filters.ModelMultipleChoiceFilter(
         queryset=Tag.objects.all(),
@@ -35,4 +36,3 @@ class RecipesFilter(FilterSet):
         if value and user.is_authenticated:
             return queryset.filter(recipe_shopping_cart__user=user)
         return queryset
-
