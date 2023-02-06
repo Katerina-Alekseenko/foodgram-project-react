@@ -152,7 +152,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'ingredients': 'Количество должно быть равным или больше 1'})
         for ingredient_item in ingredients:
             id_to_check = ingredient_item['id']
-            ingredient_to_check = get_object_or_404(Ingredient, id=id_to_check)
+            ingredient_to_check = Ingredient.objects.filter(id=id_to_check)
             if not ingredient_to_check.exists():
                 raise serializers.ValidationError(
                     'Данного продукта нет в базе')
@@ -171,10 +171,12 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
     def create(self, validated_data):
+
         image = validated_data.pop('image')
-        ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(image=image, **validated_data)
-        tagsa = self.initial_data.get('tags')
+        ingredients = self.initial_data.get('ingredients')
+
+        recipe = Recipe.objects.create(image=image, **validated_data, author=self.context['request'].user)
+        tags = self.initial_data.get('tags')
         recipe.tags.set(tags)
         self.create_ingredients(ingredients, recipe)
         return recipe
@@ -443,3 +445,4 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         if subscribe:
             return True
         return False
+
