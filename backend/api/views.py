@@ -37,7 +37,7 @@ class UsersViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = None
+    pagination_class = CustomPagination
     http_method_names = ['get', 'post', 'delete', 'head']
 
     def get_permissions(self):

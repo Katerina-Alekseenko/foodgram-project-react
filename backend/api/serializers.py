@@ -1,4 +1,6 @@
 import base64
+from abc import ABC
+
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer
@@ -106,11 +108,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     #many=False,
     #queryset=User.objects.all()
 #)
-    ingredients = AddIngredientRecipeSerializer(
-        read_only=True,
-        many=True,
-        source='recipe_ingredient',
-    )
+    ingredients = AddIngredientRecipeSerializer(source='ingredientinrecipe_set', many=True, read_only=True)
+
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -171,14 +170,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
     def create(self, validated_data):
-
         image = validated_data.pop('image')
-        ingredients = self.initial_data.get('ingredients')
 
         recipe = Recipe.objects.create(image=image, **validated_data, author=self.context['request'].user)
+
         tags = self.initial_data.get('tags')
         recipe.tags.set(tags)
-        self.create_ingredients(ingredients, recipe)
+        self.create_ingredients(self.initial_data.get('ingredients'), recipe)
         return recipe
 
     def update(self, instance, validated_data):
@@ -192,11 +190,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = self.initial_data.get('tags')
         instance.tags.set(tags)
         IngredientInRecipe.objects.filter(recipe=instance).all().delete()
-        self.create_ingredients(validated_data.get('ingredients'), instance)
+        self.create_ingredients(self.initial_data.get('ingredients'), instance)
         instance.save()
         return instance
-
-
 
 '''
 class ReciFFFFpeSerializer(serializers.ModelSerializer):
@@ -445,4 +441,3 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         if subscribe:
             return True
         return False
-
