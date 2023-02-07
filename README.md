@@ -67,21 +67,15 @@ docker-compose up -d --build
 docker-compose exec backend python manage.py migrate
 ```
 
-4. Запустите процесс загрузки ингредиентов:
-
-```bash
-
-```
-
-5. Создайте суперпользователя:
+4. Создайте суперпользователя:
 
 ```bash
 docker-compose exec backend python manage.py createsuperuser
 ```
 
-6. Через сайт /admin добавить теги (завтрак, обед и ужин)
+5. Через сайт <http://62.84.124.155/admin> после аутентификации добавить теги (завтрак, обед и ужин)
 
-7. Заупстите процесс сбора статики:
+6. Заупстите процесс сбора статики:
 
 ```bash
 docker-compose exec backend python manage.py collectstatic --no-input
@@ -89,7 +83,21 @@ docker-compose exec backend python manage.py collectstatic --no-input
 
 ## Сайт
 
-Сайт доступен по ссылке: <http://>
+Сайт доступен по ссылке: <http://62.84.124.155>
+
+## Доступ в админку 
+
+электронная почта:
+
+```bash
+katrinale@yandex.ru
+```
+
+пароль:
+
+```bash
+123
+```
 
 ## Автор
 
