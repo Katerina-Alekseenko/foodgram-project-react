@@ -72,10 +72,11 @@ CSRF_COOKIE_SECURE = False
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_URLS_REGEX = r'^/api/.*$'
 
-CSRF_TRUSTED_ORIGINS = ['http://ubuntusrv', 'http://backend:8000']
+CSRF_TRUSTED_ORIGINS = ['http://ubuntusrv', 'http://backend:8000', 'http://62.84.124.155']
 
 CORS_ORIGIN_WHITELIST = [
     'http://ubuntusrv',
+    'http://62.84.124.155',
 ]
 
 DATABASES = {
