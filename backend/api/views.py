@@ -4,8 +4,10 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
+
 from djoser.views import UserViewSet
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe,
                             ListCart, Recipe, Tag)
@@ -17,14 +19,14 @@ from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
-from api.filters import RecipesFilter
+from api.filters import IngredientFilter, RecipesFilter
 from api.mixins import CreateDestroyViewSet
 from api.paginations import CustomPagination
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           ListCartSerializer,
                           RecipeSerializer,
                           SubscriptionsSerializer, TagSerializer,
-                          UsersSerializer)
+                          UsersSerializer, UserSubscriptionsSerializer)
 
 
 logger = logging.getLogger(__name__)
@@ -52,13 +54,7 @@ class UsersViewSet(UserViewSet):
             user=user, author=author)
 
         if request.method == 'POST':
-            if subscription.exists():
-                return Response({'error': 'Вы уже подписаны'},
-                                status=status.HTTP_400_BAD_REQUEST)
-            if user == author:
-                return Response({'error': 'Невозможно подписаться на себя'},
-                                status=status.HTTP_400_BAD_REQUEST)
-            serializer = SubscriptionsSerializer(
+            serializer = UserSubscriptionsSerializer(
                 author,
                 context={'request': request}
             )
@@ -136,6 +132,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
     pagination_class = None
 
 

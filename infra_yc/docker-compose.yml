@@ -9,7 +9,7 @@ services:
       - ./.env
 
   backend:
-    image: katrinale/infra_backend:v2
+    image: katrinale/infra_backend:v3
     restart: always
     volumes:
       - static_value:/app/static/
