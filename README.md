@@ -85,20 +85,6 @@ docker-compose exec backend python manage.py collectstatic --no-input
 
 Сайт доступен по ссылке: <http://62.84.124.155>
 
-## Доступ в админку 
-
-электронная почта:
-
-```bash
-katrinale@yandex.ru
-```
-
-пароль:
-
-```bash
-123
-```
-
 ## Автор
 
 Алексеенко Екатерина Анатольевна
